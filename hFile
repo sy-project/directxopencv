@@ -1,0 +1,285 @@
+#pragma once
+
+class SolarSystemScene : public Scene
+{
+private:
+	int index;
+private:
+	Quad* SelIndex;
+	Quad* MainRun;
+	Quad* Recipe;
+	Quad* Search;
+	Quad* Setting;
+
+private:
+	Quad* InputPop;
+	Quad* AlarmPopup;
+	Quad* doStartPopup;
+	Quad* doStopPopup;
+	Quad* isRunPopup;
+	Quad* noNumPopup;
+	Quad* ProgramEndPopup;
+	Quad* WarnPopup;
+	Quad* StartCalenderPopup;
+	Quad* EndCalenderPopup;
+	
+private:
+	Quad* recipe8;
+	Quad* recipe9;
+
+private:
+	Quad* ProgramBT;
+	Quad* ManualBT;
+	Quad* RunBT;
+	Quad* StopBT;
+	Quad* DOBT1;
+	Quad* DOBT2;
+	Quad* DOBT3;
+	Quad* DOBT4;
+	Quad* DOBT5;
+	Quad* LampBT;
+	Quad* LampLight1;
+	Quad* LampLight2;
+	Quad* LampLight3;
+	Quad* LampLight4;
+
+	Quad* RecipeScrollBT;
+	Quad* RecipeLongIndex;
+	Quad* RecipeGreenLight;
+
+	Quad* SettingOnCheckTempAMB;
+	Quad* SettingOnCheckTempTGT;
+	Quad* SettingOnCheckHumiAMB;
+	Quad* SettingOnCheckHumiTGT;
+	Quad* SettingOnCheckLamp;
+	Quad* SettingOnCheckDO1;
+	Quad* SettingOnCheckDO2;
+	Quad* SettingOnCheckDO3;
+	Quad* SettingOnCheckDO4;
+	Quad* SettingOnCheckDO5;
+
+private:
+	Quad* Loading[3];
+
+private:
+	enum eRunMode
+	{
+		Program,
+		Manual,
+	};
+	struct sRunMode
+	{
+		eRunMode mode;
+		bool isRun;
+		bool runQeustion;
+		bool stopQeustion;
+
+		int TempAMB;
+		int TempTGT;
+		int HumiAMB;
+		int HumiTGT;
+
+		int Alarm;
+
+		int LampPresetNum;
+		bool LampOn[4];
+		bool LampBT;
+		bool DOBT[5];
+
+		int ProgramNum;
+		string ProgramName;
+		int FullTime;
+		int RemainTime;
+		int NowStep;
+		int EndStep;
+		int StartStep;
+		int NowCycle;
+		int EndCycle;
+		int sendNum;
+		bool nonum;
+
+		bool isClick[4];
+	};
+	sRunMode run;
+
+private:
+	struct sRecipe
+	{
+		int FullIndex;
+		int SelIndex;
+		int isFullStep[100];
+		int scroll;
+		string Name[100];
+		bool isSelIndex[100][9][5];
+		bool NameStepCycle[100][4];
+		int Temp[100][9];
+		int Time[100][9];
+		int Humi[100][9];
+		int Lamp[100][9];
+		int DO[100][9];
+		int ReptStepF[100];
+		int ReptStepT[100];
+		int ReptStepC[100];
+		int totalTime[100];
+
+		vector<Data> SaveRecipe;
+		bool Apply;
+	};
+	sRecipe recipe;
+
+private:
+	struct sSearch
+	{
+		int StartDate[3];
+		int EndDate[3];
+
+		bool Calender[2];
+		bool AmbTemp;
+		bool TarTemp;
+		bool AmbHumi;
+		bool TarHumi;
+		bool LampPre;
+		bool DO[5];
+
+		vector<Data> Data;
+		bool SearchClick;
+		bool refreshGraph;
+	};
+	sSearch search;
+
+private:
+	struct sSetting
+	{
+		bool ClickPos[3 + 6 + 5 + 50 + 8 + 16];
+		string DataLocation;
+		int Password;
+		int SaveDataInterval;
+		int ComPort[6];
+		string DOPre[5];
+		int LampPre[10][5];
+		string DIPre[8];
+		string Alarm[16];
+	};
+	sSetting setting;
+
+private:
+	cDBConnect* DataBase;
+	struct sToSaveData
+	{
+		time_t		 timer;
+		struct tm* t;
+		int			 SaveDataInterval;
+		Data		 SaveTempData;
+		vector<Data> MainSaveData;
+		vector<Data> SettingSaveData;
+	};
+	sToSaveData sSaveData;
+	vector<Data> MainSendProgramData;
+
+private:
+	struct sTimer
+	{
+		time_t timer;
+		struct tm t ;
+	};
+	struct sGraph
+	{
+		Quad* MiniGraph[100];
+		Quad* LarghGraph[100];
+		Quad* MainGraph;
+		Quad* SearchGraph;
+
+		CvPlot::Axes axesSearchGraph;
+		CvPlot::Axes axesSearchSaveGraph;
+
+		ID3D11Texture2D* texture;/*
+		ID3D11RenderTargetView* m_renderTargetView;
+		ID3D11ShaderResourceView* m_shaderResourceView;*/
+
+		cv::Mat exportGraph;
+	};
+	struct sDrawMainGraphData
+	{
+		vector<double> xMain;
+		vector<double> TemperatureNowGraphMain;
+		vector<double> HumidifyGraphNowMain;
+		vector<double> TemperatureSetGraphMain;
+		vector<double> HumidifyGraphSetMain;
+		vector<double> LampPresetGraphMain;
+		vector<double> DO1GraphMain;
+		vector<double> DO2GraphMain;
+		vector<double> DO3GraphMain;
+		vector<double> DO4GraphMain;
+		vector<double> DO5GraphMain;
+	};
+	sDrawMainGraphData maingraphdata;
+	sGraph graph;
+	sTimer stimer;
+	bool cyclepass;
+	int cycletemp;
+	CvPlot::Axes axesMainGraph;
+	cUSBCommu* usb32ch;
+	cUSBCommu* usb8ch;
+
+	cv::Point Textpos;
+	cv::Point Textend;
+
+public:
+	void InitImage();
+	void InitMain();
+	void InitRecipe();
+	void InitSearch();
+	void InitSetting();
+
+	SolarSystemScene();
+	~SolarSystemScene();
+	
+	virtual void Update() override;
+	virtual void Render() override;
+
+private:
+	void DrawGraph();
+	cv::Mat DrawGraphInOpenCV(int recipeindex = 0);
+	void SetMatPos(cv::Mat& src/*Sticker Source*/, cv::Mat& forMat, int posX = 0/*X Position*/, int posY = 0/*Y Position*/) {
+		for (int x = 0; x < src.cols; x++)
+		{
+			for (int y = 0; y < src.rows; y++)
+			{
+				forMat.at<cv::Vec3b>(posY + y, posX + x)[0] = src.at<cv::Vec3b>(y, x)[0];
+				forMat.at<cv::Vec3b>(posY + y, posX + x)[1] = src.at<cv::Vec3b>(y, x)[1];
+				forMat.at<cv::Vec3b>(posY + y, posX + x)[2] = src.at<cv::Vec3b>(y, x)[2];
+			}
+		}
+	}
+private:
+	bool RangeCheck(int temp, int _small, int _large) {
+		if (temp >= _small) {
+			if (temp <= _large)
+				return true;
+			else
+				return false;
+		}
+		else
+			return false;
+	}
+private:
+	bool isLeapYear(int yearInput) {
+		return yearInput % 4 == 0 && yearInput % 100 != 0 || yearInput % 400 == 0;
+	}
+	int lastDay(int yearInput, int monthInput) {
+		int m[] = { 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+		m[1] = isLeapYear(yearInput) ? 29 : 28;
+		return m[monthInput - 1];
+	}
+	int totalDay(int yearInput, int monthInput, int dayInput) {
+		int total = (yearInput - 1) * 365 + (yearInput - 1) / 4 - (yearInput - 1) / 100 + (yearInput - 1) / 400;
+		for (int i = 1; i < monthInput; i++)
+		{
+			total += lastDay(yearInput, i);
+		}
+		return total + dayInput;
+	}
+	int weekDay(int yearInput, int monthInput, int dayInput) {
+		return totalDay(yearInput, monthInput, dayInput) % 7;
+	}
+};
