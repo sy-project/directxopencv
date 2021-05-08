@@ -1,0 +1,272 @@
+// header.h: 표준 시스템 포함 파일
+// 또는 프로젝트 특정 포함 파일이 들어 있는 포함 파일입니다.
+//
+
+#pragma once
+
+#include "targetver.h"
+#define WIN32_LEAN_AND_MEAN
+
+#define WinWidth 1920
+#define WinHeight 1080
+
+#define CENTER_X WinWidth * 0.5f
+#define CENTER_Y WinHeight * 0.5f
+
+#define WinStartX 0
+#define WinStartY 0
+
+#define PIN1 9
+#define PIN2 10
+#define TEMI "COM3"
+
+#define SPEED	38400
+#define DATA	8
+#define STOP	1
+
+#define NUMKEY		0
+#define ENGKEY		1
+#define DAYKEY		2
+#define PASSKEY		3
+#define BASICKEY	4
+
+#define DEVICE Device::Get()->GetDevice()
+#define DC Device::Get()->GetDeviceContext()
+#define MODBUS ModbusCommu::GetInstance()
+
+#define KeyDown(k) Keyboard::Get()->Down(k)
+#define KeyPress(k) Keyboard::Get()->Press(k)
+#define KeyUp(k) Keyboard::Get()->Up(k)
+
+#define DeltaTime Timer::Get()->GetElapsedTime()
+
+#define Sampler StateManager::Get()->GetSampler()
+#define AlphaBlendState StateManager::Get()->GetAlphaBlend()
+#define AdditiveBlendState StateManager::Get()->GetAdditiveBlend()
+#define CullModeState StateManager::Get()->GetCullMode()
+
+#define SHADER ShaderManager::Get()
+
+#define V(hr) assert(SUCCEEDED(hr))
+
+#define PATH		"Textures/Resources/"
+#define DATASAVEPATH "C:/Users/FITI/Desktop/Data/"
+#define SEARCH_DATA "C:/Users/FITI/Desktop/Data/"
+
+#include <iostream>
+#include <windows.h>
+#include <vector>
+#include <map>
+#include <string>
+#include <cmath>
+#include <assert.h>
+#include <fstream>
+#include <time.h>
+
+#include <d3d11.h>
+#include <d3dcompiler.h>
+#include <DirectXMath.h>
+
+#pragma comment(lib, "d3d11.lib")
+#pragma comment(lib, "d3dcompiler.lib")
+#pragma comment(lib, "dxguid.lib")
+
+//DirectXTex
+#include "../DirectXTex/DirectXTex.h"
+
+//DirectWrite
+#include <d2d1_2.h>
+#include <dwrite.h>
+
+#pragma comment(lib, "d2d1.lib")
+#pragma comment(lib, "dwrite.lib")
+
+//OpenCV 4.5.1 Library
+#include <opencv2/core.hpp>
+#include <opencv2/opencv.hpp>
+#include <opencv2/highgui.hpp>
+#include <opencv2/imgcodecs.hpp>
+#include <opencv2/imgproc.hpp>
+#include <opencv2/core/directx.hpp>
+
+#pragma comment(lib, "opencv_world451.lib")
+#pragma comment(lib, "opencv_world451d.lib")
+
+#include <CvPlot/cvplot.h>
+
+//Sqlite3 Library
+#include <sqlite3.h>
+#pragma comment(lib, "sqlite3.lib")
+
+//Modbus Library
+#include <modbus.h>
+#pragma comment(lib, "modbus.lib")
+
+//Excel Library
+#include <xlnt/xlnt.hpp>
+#pragma comment(lib, "xlntd.lib")
+
+using namespace std;
+using namespace DirectX;
+
+typedef XMFLOAT4 Float4;
+typedef XMFLOAT3 Float3;
+typedef XMFLOAT2 Float2;
+typedef XMMATRIX Matrix;
+typedef XMFLOAT4X4 Float4x4;
+typedef function<void()> CallBack;
+typedef function<void(void*)> CallBackParam;
+
+
+enum eTable
+{
+	MAIN_DATA = 0,
+	RECIPE_MAIN,
+	RECIPE_CONTENTS,
+	RECIPE_REPT,
+	LAMP_PRESET,
+	DO_PRESET,
+};
+
+struct sLAMP_PRESET
+{
+	int PRES_NO;
+	int WATTS;
+	int LAMP1;
+	int LAMP2;
+	int LAMP3;
+	int LAMP4;
+};
+
+struct sDO_PRESET
+{
+	int DO_NO;
+	std::string DO_NAME;
+	int DO_RELAY;
+};
+
+struct sMAIN_DATA
+{
+	int NO;
+	std::string DATE;
+	std::string TIME;
+	int TEMP_AMB;
+	int TEMP_TGT;
+	int HUMI_AMB;
+	int HUMI_TGT;
+	int LMP_PRE;
+	int WATTS;
+	int DO1;
+	int DO2;
+	int DO3;
+	int DO4;
+	int DO5;
+};
+
+struct sRECIPE_MAIN
+{
+	int RECIPE_NO;
+	std::string RECIPE_NAME;
+	int TEMP[9];
+	int TIME[9];
+	int HUMI[9];
+	int LAMP[9];
+	int DO[9];
+	int REPEAT_TO;
+	int REPEAT_FROM;
+	int REPEAT_TIME;
+	int TOTAL_TIME;
+};
+
+struct sRECIPE_CONTENTS
+{
+	int RECIPE_NO;
+	int RECIPE_ST;
+	int TEMP;
+	int TIME_DUR;
+	int HUMID;
+	int LAMP_PRE;
+	int DO1;
+	int DO2;
+	int DO3;
+	int DO4;
+	int DO5;
+};
+
+struct sRECIPE_REPT
+{
+	int RECIPE_NO;
+	int STEP_STRT;
+	int STEP_END;
+	int REPT_CYC;
+};
+
+struct Data
+{
+	eTable 		Table;
+
+	sMAIN_DATA			mainDT;
+	sRECIPE_MAIN 		mainRC;
+	sRECIPE_CONTENTS	contRC;
+	sRECIPE_REPT		reptRC;
+	sLAMP_PRESET		presLP;
+	sDO_PRESET			presDO;
+};
+
+
+//Framework Header
+#include "Framework/Device/Device.h"
+
+#include "Framework/Render/Shader.h"
+#include "Framework/Render/VertexShader.h"
+#include "Framework/Render/PixelShader.h"
+#include "Framework/Render/ShaderManager.h"
+#include "Framework/Render/VertexBuffer.h"
+#include "Framework/Render/IndexBuffer.h"
+#include "Framework/Render/VertexLayouts.h"
+#include "Framework/Render/ConstBuffer.h"
+#include "Framework/Render/GlobalBuffer.h"
+#include "Framework/Render/Texture.h"
+
+#include "Framework/State/SamplerState.h"
+#include "Framework/State/BlendState.h"
+#include "Framework/State/RasterizerState.h"
+#include "Framework/State/StateManager.h"
+
+#include "Framework/Math/Vector2.h"
+#include "Framework/Math/Transform.h"
+
+#include "Framework/Utility/Keyboard.h"
+#include "Framework/Utility/Timer.h"
+#include "Framework/Utility/DirectWrite.h"
+
+#include "Framework/Collision/Collider.h"
+#include "Framework/Collision/RectCollider.h"
+#include "Framework/Collision/CircleCollider.h"
+
+//Object Header
+#include "Object/BasicObject/Quad.h"
+
+#include "Object/FITI/hFileSave.h"
+#include "Object/FITI/ModbusCommu.h"
+#include "Object/FITI/cUSBCommu.h"
+#include "Object/FITI/cDBConnect.h"
+//Program;
+#include "Scenes/Scene.h"
+#include "Program/Program.h"
+
+extern Vector2 mousePos;
+extern Vector2 LongmousePos;
+extern short mouseWheel;
+extern bool mouseClick;
+extern bool isWarningPop;
+extern bool mouseLongClick;
+extern bool mouseLongClick;
+extern vector<int> ModbusData;
+extern bool isKeyInput;
+extern bool PassSuccess;
+extern int KeyCase;
+extern string sKeyboard;
+extern vector<string> vKeyboard;
+extern int gIndex;
+extern bool ClickButton[3][88];
