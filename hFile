@@ -241,6 +241,8 @@ private:
 	void DrawGraph();
 	cv::Mat DrawGraphInOpenCV(int recipeindex = 0);
 	void SetMatPos(cv::Mat& src/*Sticker Source*/, cv::Mat& forMat, int posX = 0/*X Position*/, int posY = 0/*Y Position*/) {
+		int i = forMat.type();
+		src.convertTo(src, i);
 		for (int x = 0; x < src.cols; x++)
 		{
 			for (int y = 0; y < src.rows; y++)
