@@ -189,10 +189,11 @@ void SolarSystemScene::InitImage()
 
 
 	D3D11_TEXTURE2D_DESC desc;
-	desc.Width = 1920;
-	desc.Height = 1080;
+	ZeroMemory(&desc, sizeof(desc));
+	desc.Width = 1726;
+	desc.Height = 662;
 	desc.MipLevels = desc.ArraySize = 1;
-	desc.Format = DXGI_FORMAT_R16G16B16A16_UNORM;
+	desc.Format = DXGI_FORMAT_R16G16B16A16_UINT;;
 	desc.SampleDesc.Count = 1;
 	desc.SampleDesc.Quality = 0;
 	desc.Usage = D3D11_USAGE_DEFAULT;
@@ -200,11 +201,7 @@ void SolarSystemScene::InitImage()
 	desc.CPUAccessFlags = D3D11_CPU_ACCESS_WRITE | D3D11_CPU_ACCESS_READ;
 	desc.MiscFlags = 0;
 
-	//D3D11_RENDER_TARGET_VIEW_DESC renderTargetViewDesc;
-	//renderTargetViewDesc.Format = desc.Format;
-	//renderTargetViewDesc.ViewDimension = D3D11_RTV_DIMENSION_TEXTURE2D;
-	//renderTargetViewDesc.Texture2D.MipSlice = 0;
-
+	Device::Get()->GetSwapChain()->GetBuffer(0, __uuidof(ID3D11Texture2D), (void**)&graph.texture);
 	DEVICE->CreateTexture2D(&desc, nullptr, &graph.texture);
 	//DEVICE->CreateRenderTargetView(graph.texture, &renderTargetViewDesc, &graph.m_renderTargetView);
 
@@ -941,11 +938,12 @@ void SolarSystemScene::Update()
 						if (cycletemp != run.NowCycle + 1)
 							cycletemp = run.NowCycle + 1;
 					}
-					Sleep(80);
 					int sendData = 3;
-					if (MODBUS->send_datas(100, (uint16_t*)&sendData, 1))
-						break;
+					Sleep(80);
+					MODBUS->send_datas(100, (uint16_t*)&sendData, 1);
+					break;
 				}
+				Sleep(80);
 			}		
 			if (run.LampBT)
 			{
@@ -1091,12 +1089,8 @@ void SolarSystemScene::Update()
 						if (run.mode == Manual)
 						{
 							sendData = 4;
-							while (true)
-							{
-								Sleep(80);
-								if (MODBUS->send_datas(100, (uint16_t*)&sendData, 1))
-									break;
-							}
+							Sleep(80);
+							(MODBUS->send_datas(100, (uint16_t*)&sendData, 1));
 							usb8ch->WriteCommByte('n');
 							usb32ch->WriteData((char*)"\rrelay writeall 00000000\r\n", 30);
 						}
@@ -1120,6 +1114,7 @@ void SolarSystemScene::Update()
 							vtemp.erase(vtemp.begin());
 							while (true)
 							{
+								Sleep(80);
 								if (MODBUS->ProgramSet(programPush, recipe.isFullStep[run.ProgramNum]) == true)
 									break;
 							}
@@ -1132,13 +1127,10 @@ void SolarSystemScene::Update()
 								}
 							}
 							sendData = 4;
-							while (true)
-							{
-								Sleep(80);
-								if (MODBUS->send_datas(100, (uint16_t*)&sendData, 1))
-									break;
-							}
+							Sleep(80);
+							(MODBUS->send_datas(100, (uint16_t*)&sendData, 1));
 						}
+						Sleep(100);
 					}
 				}
 				run.runQeustion = false;
@@ -1157,12 +1149,8 @@ void SolarSystemScene::Update()
 						sendData = 1;
 						usb32ch->Close();
 						usb8ch->Close();
-						while (true)
-						{
-							Sleep(80);
-							if (MODBUS->send_datas(100, (uint16_t*)&sendData, 1))
-								break;
-						}
+						Sleep(80);
+						(MODBUS->send_datas(100, (uint16_t*)&sendData, 1));
 					}
 				}
 				run.stopQeustion = false;
@@ -1208,9 +1196,11 @@ void SolarSystemScene::Update()
 					sendData = 3;
 					while (true)
 					{
-						if (MODBUS->send_datas(100, (uint16_t*)&sendData, 1))
-							break;
+						Sleep(80);
+						(MODBUS->send_datas(100, (uint16_t*)&sendData, 1));
+						break;
 					}
+					Sleep(80);
 				}
 			}
 			if (RangeCheck(mousePos.x, 1002, 1044) && RangeCheck(mousePos.y, 415, 457))
@@ -1222,9 +1212,11 @@ void SolarSystemScene::Update()
 					sendData = 3;
 					while (true)
 					{
-						if (MODBUS->send_datas(100, (uint16_t*)&sendData, 1))
-							break;
+						Sleep(80);
+						(MODBUS->send_datas(100, (uint16_t*)&sendData, 1));
+						break;
 					}
+					Sleep(80);
 				}
 			}
 			if (RangeCheck(mousePos.x, 1111, 1311) && RangeCheck(mousePos.y, 211, 295))
@@ -4429,8 +4421,12 @@ void SolarSystemScene::Render()
 
 void SolarSystemScene::DrawGraph()
 {
-	cv::Mat Temp(cv::Size(1920, 1080), CV_8UC3);
+	D3D11_TEXTURE2D_DESC desc = { 0 };
+	graph.texture->GetDesc(&desc);
+	int textureType = cv::directx::getTypeFromDXGI_FORMAT(desc.Format);
+	cv::Mat Temp(cv::Size(1920, 1080), CV_16UC4);
 	cv::Mat graphClone;
+	int srcType = Temp.type();
 	try
 	{
 		cv::waitKey(1);
@@ -4449,20 +4445,31 @@ void SolarSystemScene::DrawGraph()
 		case 4:
 			if (search.Data.size() > 0)
 			{
-				graphClone = DrawGraphInOpenCV().clone();
-				SetMatPos(graphClone, Temp, 125, 96);
+				graphClone = DrawGraphInOpenCV();
+				//graphClone.convertTo(graphClone, CV_16UC4);
+				//SetMatPos(graphClone, Temp, 125, 96);
 			}
 			break;
 		default:
 			break;
 		}
-		int conversion[] = { 0, 0, 1, 1, 2, 2, -1, 3 };
-		cv::Mat as4channelMat(Temp.size(), CV_MAKE_TYPE(Temp.depth(), 4));
-		cv::mixChannels(&Temp, 1, &as4channelMat, 1, conversion, 4);
-		//cv::imwrite("A", graphClone);
-		cv::cvtColor(Temp, Temp, cv::COLOR_BGR2RGBA);
-		//cv::imshow("A", Temp);
-		cv::directx::convertToD3D11Texture2D(Temp, graph.texture);
+		if (textureType == srcType)
+		{
+			int conversion[] = { 0, 0, 1, 1, 2, 2, -1, 3 };
+			cv::Mat as4channelMat(graphClone.size(), CV_MAKE_TYPE(graphClone.depth(), 4));
+			cv::mixChannels(&graphClone, 1, &as4channelMat, 1, conversion, 4);
+			//cv::imwrite("A", graphClone);
+			cv::cvtColor(graphClone, graphClone, cv::COLOR_BGR2BGRA);
+			//cv::imshow("A", Temp);
+			//cv::UMat u = Temp.getUMat();// .offset;
+			//cout << Temp.getUMat(0).offset;
+			graphClone.convertTo(graphClone, CV_16UC4);
+			cv::directx::convertToD3D11Texture2D(graphClone, graph.texture);
+		}
+		else
+		{
+
+		}
 		
 	}
 	catch (cv::Exception& e)
